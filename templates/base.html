@@ -20,6 +20,9 @@
             </a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
+                    <a href="{{ url_for('profile') }}" class="nav-link-profile">
+                        <i data-lucide="user"></i>Profile
+                    </a>
                     <span class="nav-user">{{ session['user_name'] }}</span>
                     <a href="{{ url_for('logout') }}" class="nav-cta">Sign out</a>
                 {% else %}
@@ -53,7 +56,13 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
