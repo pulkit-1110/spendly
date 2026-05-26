@@ -1,9 +1,18 @@
 import re
+from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 
 from werkzeug.security import check_password_hash
 
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
+from database.db import (
+    get_db,
+    init_db,
+    seed_db,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    get_expense_summary,
+)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
@@ -124,7 +133,32 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in to view your profile.")
+        return redirect(url_for("login"))
+
+    user = get_user_by_id(user_id)
+    if user is None:
+        session.clear()
+        flash("Please log in to view your profile.")
+        return redirect(url_for("login"))
+
+    summary = get_expense_summary(user_id)
+
+    try:
+        member_since = datetime.strptime(
+            user["created_at"], "%Y-%m-%d %H:%M:%S"
+        ).strftime("%d %b %Y")
+    except (TypeError, ValueError):
+        member_since = user["created_at"]
+
+    return render_template(
+        "profile.html",
+        user=user,
+        summary=summary,
+        member_since=member_since,
+    )
 
 
 @app.route("/expenses/add")
