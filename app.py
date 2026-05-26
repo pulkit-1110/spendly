@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 
 from werkzeug.security import check_password_hash
@@ -10,8 +9,12 @@ from database.db import (
     seed_db,
     create_user,
     get_user_by_email,
+)
+from database.queries import (
     get_user_by_id,
-    get_expense_summary,
+    get_summary_stats,
+    get_recent_transactions,
+    get_category_breakdown,
 )
 
 app = Flask(__name__)
@@ -144,20 +147,16 @@ def profile():
         flash("Please log in to view your profile.")
         return redirect(url_for("login"))
 
-    summary = get_expense_summary(user_id)
-
-    try:
-        member_since = datetime.strptime(
-            user["created_at"], "%Y-%m-%d %H:%M:%S"
-        ).strftime("%d %b %Y")
-    except (TypeError, ValueError):
-        member_since = user["created_at"]
+    summary = get_summary_stats(user_id)
+    transactions = get_recent_transactions(user_id)
+    categories = get_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
         user=user,
         summary=summary,
-        member_since=member_since,
+        transactions=transactions,
+        categories=categories,
     )
 
 
