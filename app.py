@@ -1,4 +1,6 @@
 import re
+from datetime import datetime
+
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 
 from werkzeug.security import check_password_hash
@@ -19,6 +21,28 @@ from database.queries import (
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
+
+
+# View helpers
+
+
+def _parse_iso_date(value):
+    """Return a date for an ISO YYYY-MM-DD string, or None if invalid/missing."""
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
+
+
+def _format_filter_label(start, end):
+    """Build the 'Showing …' label or return None when no filter is active."""
+    if start and end:
+        return f"Showing {start.strftime('%d %b %Y')} – {end.strftime('%d %b %Y')}"
+    if start:
+        return f"Showing from {start.strftime('%d %b %Y')}"
+    if end:
+        return f"Showing up to {end.strftime('%d %b %Y')}"
+    return None
 
 
 def validate_registration_form(name, email, password, password_confirm):
@@ -147,9 +171,17 @@ def profile():
         flash("Please log in to view your profile.")
         return redirect(url_for("login"))
 
-    summary = get_summary_stats(user_id)
-    transactions = get_recent_transactions(user_id)
-    categories = get_category_breakdown(user_id)
+    start = _parse_iso_date(request.args.get("start_date"))
+    end = _parse_iso_date(request.args.get("end_date"))
+    if start and end and start > end:
+        start, end = end, start
+
+    start_iso = start.isoformat() if start else None
+    end_iso = end.isoformat() if end else None
+
+    summary = get_summary_stats(user_id, start_date=start_iso, end_date=end_iso)
+    transactions = get_recent_transactions(user_id, start_date=start_iso, end_date=end_iso)
+    categories = get_category_breakdown(user_id, start_date=start_iso, end_date=end_iso)
 
     return render_template(
         "profile.html",
@@ -157,6 +189,9 @@ def profile():
         summary=summary,
         transactions=transactions,
         categories=categories,
+        start_date=start_iso,
+        end_date=end_iso,
+        filter_label=_format_filter_label(start, end),
     )
 
 

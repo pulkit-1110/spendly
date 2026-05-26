@@ -42,8 +42,34 @@
             </dl>
         </section>
 
+        <section class="profile-card profile-filter" aria-labelledby="filter-heading">
+            <h2 id="filter-heading" class="profile-card-title">Filter by date</h2>
+            <form class="profile-filter__form" method="get" action="{{ url_for('profile') }}">
+                <div class="profile-filter__field">
+                    <label for="filter-start">From</label>
+                    <input type="date" id="filter-start" name="start_date" class="form-input profile-filter__input" value="{{ start_date or '' }}">
+                </div>
+                <div class="profile-filter__field">
+                    <label for="filter-end">To</label>
+                    <input type="date" id="filter-end" name="end_date" class="form-input profile-filter__input" value="{{ end_date or '' }}">
+                </div>
+                <div class="profile-filter__actions">
+                    <button type="submit" class="btn-submit profile-filter__submit">Apply</button>
+                    {% if start_date or end_date %}
+                        <a href="{{ url_for('profile') }}" class="profile-filter__clear">Clear</a>
+                    {% endif %}
+                </div>
+            </form>
+        </section>
+
         <section class="profile-card" aria-labelledby="summary-heading">
-            <h2 id="summary-heading" class="profile-card-title">Spending summary</h2>
+            <div class="profile-card-header">
+                <h2 id="summary-heading" class="profile-card-title">Spending summary</h2>
+                {% if filter_label %}
+                    <span class="profile-meta-sep" aria-hidden="true">·</span>
+                    <span class="profile-filter__active">{{ filter_label }}</span>
+                {% endif %}
+            </div>
             <div class="profile-stats">
 
                 <div class="mock-stat-card profile-stat">
