@@ -18,7 +18,7 @@
                     </span>
                     <span class="profile-meta-sep">·</span>
                     <span class="profile-meta-item">
-                        <i data-lucide="calendar"></i>Member since {{ member_since }}
+                        <i data-lucide="calendar"></i>Member since {{ user.member_since }}
                     </span>
                 </p>
             </div>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="profile-field">
                     <dt>Member since</dt>
-                    <dd>{{ member_since }}</dd>
+                    <dd>{{ user.member_since }}</dd>
                 </div>
             </dl>
         </section>
@@ -49,19 +49,19 @@
                 <div class="mock-stat-card profile-stat">
                     <i data-lucide="receipt" class="profile-stat-icon"></i>
                     <span class="stat-label">Expenses</span>
-                    <span class="stat-value">{{ summary.total_count }}</span>
+                    <span class="stat-value">{{ summary.transaction_count }}</span>
                 </div>
 
                 <div class="mock-stat-card profile-stat">
                     <i data-lucide="wallet" class="profile-stat-icon"></i>
                     <span class="stat-label">Total spent</span>
-                    <span class="stat-value profile-stat-amount">${{ "%.2f"|format(summary.total_amount) }}</span>
+                    <span class="stat-value profile-stat-amount">₹{{ "%.2f"|format(summary.total_spent) }}</span>
                 </div>
 
                 <div class="mock-stat-card profile-stat">
                     <i data-lucide="tag" class="profile-stat-icon"></i>
                     <span class="stat-label">Top category</span>
-                    {% if summary.top_category %}
+                    {% if summary.top_category != "—" %}
                         <span class="stat-value">{{ summary.top_category }}</span>
                     {% else %}
                         <span class="profile-stat-empty">No expenses yet</span>
@@ -70,10 +70,48 @@
 
             </div>
 
-            {% if not summary.top_category %}
+            {% if summary.top_category == "—" %}
                 <a href="{{ url_for('add_expense') }}" class="profile-cta">
                     <i data-lucide="plus"></i>Add your first expense
                 </a>
+            {% endif %}
+        </section>
+
+        <section class="profile-card" aria-labelledby="transactions-heading">
+            <h2 id="transactions-heading" class="profile-card-title">Recent transactions</h2>
+            {% if transactions %}
+                <ul class="profile-tx-list">
+                    {% for tx in transactions %}
+                        <li class="profile-tx-row">
+                            <span class="profile-tx-date">{{ tx.date }}</span>
+                            <span class="profile-tx-description">{{ tx.description }}</span>
+                            <span class="profile-tx-category">{{ tx.category }}</span>
+                            <span class="profile-tx-amount">₹{{ "%.2f"|format(tx.amount) }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="profile-stat-empty">No transactions yet.</p>
+            {% endif %}
+        </section>
+
+        <section class="profile-card" aria-labelledby="categories-heading">
+            <h2 id="categories-heading" class="profile-card-title">Spending by category</h2>
+            {% if categories %}
+                <div class="profile-cat-list">
+                    {% for cat in categories %}
+                        <div class="profile-cat-row">
+                            <span class="profile-cat-label">{{ cat.name }}</span>
+                            <div class="profile-cat-track">
+                                <div class="profile-cat-bar profile-cat-bar--{{ cat.name|lower }}" style="--pct: {{ cat.pct }}%"></div>
+                            </div>
+                            <span class="profile-cat-pct">{{ cat.pct }}%</span>
+                            <span class="profile-cat-amount">₹{{ "%.2f"|format(cat.amount) }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="profile-stat-empty">No expenses to break down yet.</p>
             {% endif %}
         </section>
 

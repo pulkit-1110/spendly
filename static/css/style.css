@@ -881,3 +881,152 @@ a { color: inherit; text-decoration: none; }
     .profile-field { grid-template-columns: 1fr; gap: 0.25rem; }
     .profile-card { padding: 1.5rem; }
 }
+
+/* Profile — recent transactions */
+.profile-tx-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-tx-row {
+    display: grid;
+    grid-template-columns: 110px 1fr auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.profile-tx-row:last-child {
+    border-bottom: none;
+}
+
+.profile-tx-date {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.profile-tx-description {
+    font-size: 0.95rem;
+    color: var(--ink);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-tx-category {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+.profile-tx-amount {
+    font-family: var(--font-display, inherit);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .profile-tx-row {
+        grid-template-columns: 1fr auto;
+        gap: 0.4rem 0.75rem;
+    }
+    .profile-tx-date,
+    .profile-tx-category {
+        grid-column: auto;
+    }
+    .profile-tx-description {
+        grid-column: 1 / -1;
+        white-space: normal;
+    }
+}
+
+/* Profile — spending by category */
+.profile-cat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.profile-cat-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 48px 90px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.profile-cat-label {
+    font-size: 0.9rem;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.profile-cat-track {
+    height: 8px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.profile-cat-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    width: var(--pct, 0%);
+    transition: width 0.4s ease;
+}
+
+.profile-cat-bar--food          { background: var(--accent-2); }
+.profile-cat-bar--transport     { background: var(--accent); }
+.profile-cat-bar--bills         { background: #7b5ea7; }
+.profile-cat-bar--health        { background: var(--danger, #c0476a); }
+.profile-cat-bar--entertainment { background: #4a7abf; }
+.profile-cat-bar--shopping      { background: var(--accent-2); }
+.profile-cat-bar--other         { background: var(--ink-muted); }
+
+.profile-cat-pct {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    text-align: right;
+}
+
+.profile-cat-amount {
+    font-family: var(--font-display, inherit);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    text-align: right;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .profile-cat-row {
+        grid-template-columns: 1fr auto;
+        gap: 0.35rem 0.75rem;
+    }
+    .profile-cat-track {
+        grid-column: 1 / -1;
+        order: 3;
+    }
+    .profile-cat-pct {
+        order: 2;
+    }
+    .profile-cat-label {
+        order: 1;
+    }
+    .profile-cat-amount {
+        order: 4;
+        grid-column: 1 / -1;
+    }
+}
