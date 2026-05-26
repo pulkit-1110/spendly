@@ -31,30 +31,37 @@ def get_user_by_id(user_id):
     }
 
 
-def get_summary_stats(user_id):
+def _build_date_where(user_id, start_date, end_date):
+    """Build a parameterised WHERE clause for user + optional ISO date range."""
+    clauses = ["user_id = ?"]
+    params = [user_id]
+    if start_date:
+        clauses.append("date >= ?")
+        params.append(start_date)
+    if end_date:
+        clauses.append("date <= ?")
+        params.append(end_date)
+    return " AND ".join(clauses), params
+
+
+def get_summary_stats(user_id, start_date=None, end_date=None):
     """Return total_spent, transaction_count, top_category for a user."""
+    where, params = _build_date_where(user_id, start_date, end_date)
     conn = get_db()
     try:
         totals = conn.execute(
-            """
-            SELECT COUNT(*) AS n,
-                   COALESCE(SUM(amount), 0.0) AS total
-            FROM expenses
-            WHERE user_id = ?
-            """,
-            (user_id,),
+            "SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0.0) AS total "
+            "FROM expenses WHERE " + where,
+            params,
         ).fetchone()
 
         top = conn.execute(
-            """
-            SELECT category, SUM(amount) AS s
-            FROM expenses
-            WHERE user_id = ?
-            GROUP BY category
-            ORDER BY s DESC, category ASC
-            LIMIT 1
-            """,
-            (user_id,),
+            "SELECT category, SUM(amount) AS s "
+            "FROM expenses WHERE " + where + " "
+            "GROUP BY category "
+            "ORDER BY s DESC, category ASC "
+            "LIMIT 1",
+            params,
         ).fetchone()
     finally:
         conn.close()
@@ -66,19 +73,17 @@ def get_summary_stats(user_id):
     }
 
 
-def get_recent_transactions(user_id, limit=10):
+def get_recent_transactions(user_id, start_date=None, end_date=None, limit=10):
     """Return list of recent transactions for a user, newest first."""
+    where, params = _build_date_where(user_id, start_date, end_date)
     conn = get_db()
     try:
         rows = conn.execute(
-            """
-            SELECT date, description, category, amount
-            FROM expenses
-            WHERE user_id = ?
-            ORDER BY date DESC, id DESC
-            LIMIT ?
-            """,
-            (user_id, limit),
+            "SELECT date, description, category, amount "
+            "FROM expenses WHERE " + where + " "
+            "ORDER BY date DESC, id DESC "
+            "LIMIT ?",
+            params + [limit],
         ).fetchall()
     finally:
         conn.close()
@@ -98,24 +103,22 @@ def get_recent_transactions(user_id, limit=10):
     return transactions
 
 
-def get_category_breakdown(user_id):
+def get_category_breakdown(user_id, start_date=None, end_date=None):
     """Return list of {name, amount, pct} dicts ordered by amount desc.
 
     Percentages are integers that sum to exactly 100. The largest
     category absorbs any rounding remainder. Returns [] when there
     are no expenses for this user.
     """
+    where, params = _build_date_where(user_id, start_date, end_date)
     conn = get_db()
     try:
         rows = conn.execute(
-            """
-            SELECT category AS name, SUM(amount) AS amount
-            FROM expenses
-            WHERE user_id = ?
-            GROUP BY category
-            ORDER BY amount DESC
-            """,
-            (user_id,),
+            "SELECT category AS name, SUM(amount) AS amount "
+            "FROM expenses WHERE " + where + " "
+            "GROUP BY category "
+            "ORDER BY amount DESC",
+            params,
         ).fetchall()
     finally:
         conn.close()
