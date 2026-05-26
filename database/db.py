@@ -46,6 +46,30 @@ def init_db():
         conn.close()
 
 
+def create_user(name, email, password):
+    """Create a new user account. Returns user_id on success, None if email exists."""
+    conn = get_db()
+    try:
+        # Check if email already exists
+        existing = conn.execute(
+            "SELECT id FROM users WHERE email = ?", (email,)
+        ).fetchone()
+
+        if existing:
+            return None
+
+        # Create new user
+        password_hash = generate_password_hash(password)
+        cur = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, password_hash)
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
 def seed_db():
     conn = get_db()
     try:

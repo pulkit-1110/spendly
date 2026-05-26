@@ -1,8 +1,41 @@
-from flask import Flask, render_template
+import re
+from flask import Flask, render_template, request, flash, redirect, url_for
 
-from database.db import get_db, init_db, seed_db
+from database.db import get_db, init_db, seed_db, create_user
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
+
+
+def validate_registration_form(name, email, password, password_confirm):
+    """Validate registration form data. Returns list of errors."""
+    errors = []
+
+    # Name validation
+    if not name or not name.strip():
+        errors.append("Full name is required")
+    elif len(name.strip()) < 2:
+        errors.append("Full name must be at least 2 characters")
+
+    # Email validation
+    if not email:
+        errors.append("Email address is required")
+    elif not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+        errors.append("Please enter a valid email address")
+
+    # Password validation
+    if not password:
+        errors.append("Password is required")
+    elif len(password) < 8:
+        errors.append("Password must be at least 8 characters")
+
+    # Password confirmation
+    if not password_confirm:
+        errors.append("Please confirm your password")
+    elif password != password_confirm:
+        errors.append("Passwords do not match")
+
+    return errors
 
 with app.app_context():
     init_db()
@@ -18,8 +51,34 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        # Get form data
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        password_confirm = request.form.get("password_confirm", "")
+
+        # Validate form data
+        errors = validate_registration_form(name, email, password, password_confirm)
+
+        if errors:
+            for error in errors:
+                flash(error)
+            return render_template("register.html")
+
+        # Attempt to create user
+        user_id = create_user(name, email, password)
+
+        if user_id is None:
+            flash("An account with this email address already exists")
+            return render_template("register.html")
+
+        # Success - redirect to login with success message
+        flash("Account created successfully! Please sign in.")
+        return redirect(url_for("login"))
+
     return render_template("register.html")
 
 
