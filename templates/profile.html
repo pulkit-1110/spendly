@@ -104,7 +104,12 @@
         </section>
 
         <section class="profile-card" aria-labelledby="transactions-heading">
-            <h2 id="transactions-heading" class="profile-card-title">Recent transactions</h2>
+            <div class="profile-card-header">
+                <h2 id="transactions-heading" class="profile-card-title">Recent transactions</h2>
+                <a href="{{ url_for('add_expense') }}" class="profile-cta">
+                    <i data-lucide="plus"></i>Add expense
+                </a>
+            </div>
             {% if transactions %}
                 <ul class="profile-tx-list">
                     {% for tx in transactions %}
