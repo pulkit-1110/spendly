@@ -20,7 +20,10 @@
             </a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
-                    <a href="{{ url_for('profile') }}" class="nav-link-profile">
+                    <a href="{{ url_for('analytics') }}" class="nav-link-icon{% if request.endpoint == 'analytics' %} is-active{% endif %}">
+                        <i data-lucide="bar-chart-3"></i>Analytics
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="nav-link-icon nav-link-profile{% if request.endpoint == 'profile' %} is-active{% endif %}">
                         <i data-lucide="user"></i>Profile
                     </a>
                     <span class="nav-user">{{ session['user_name'] }}</span>

@@ -195,6 +195,14 @@ def profile():
     )
 
 
+@app.route("/analytics")
+def analytics():
+    if not session.get("user_id"):
+        flash("Please log in to view analytics.")
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
 @app.route("/expenses/add")
 def add_expense():
     return "Add expense — coming in Step 7"

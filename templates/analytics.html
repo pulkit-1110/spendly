@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Spendly{% endblock %}
+
+{% block content %}
+<section class="coming-soon">
+    <div class="coming-soon-inner">
+        <span class="coming-soon-badge">
+            <span class="badge-dot"></span>
+            Coming soon
+        </span>
+
+        <h1 class="coming-soon-title">
+            Analytics is on its <em>way</em>
+        </h1>
+
+        <p class="coming-soon-subtitle">
+            We're building a richer view of your spending — trends over time,
+            category deep dives, and monthly comparisons. Sit tight, it'll be
+            worth the wait.
+        </p>
+
+        <div class="coming-soon-features">
+            <div class="coming-soon-feature">
+                <div class="coming-soon-feature-icon">
+                    <i data-lucide="trending-up"></i>
+                </div>
+                <h3 class="coming-soon-feature-title">Spending trends</h3>
+                <p class="coming-soon-feature-body">
+                    See how your habits shift week over week and month over month.
+                </p>
+            </div>
+
+            <div class="coming-soon-feature">
+                <div class="coming-soon-feature-icon">
+                    <i data-lucide="pie-chart"></i>
+                </div>
+                <h3 class="coming-soon-feature-title">Category breakdowns</h3>
+                <p class="coming-soon-feature-body">
+                    Drill into each category to find where your money really goes.
+                </p>
+            </div>
+
+            <div class="coming-soon-feature">
+                <div class="coming-soon-feature-icon">
+                    <i data-lucide="calendar-range"></i>
+                </div>
+                <h3 class="coming-soon-feature-title">Custom date ranges</h3>
+                <p class="coming-soon-feature-body">
+                    Compare any two periods side by side — you pick the windows.
+                </p>
+            </div>
+        </div>
+
+        <div class="coming-soon-actions">
+            <a href="{{ url_for('profile') }}" class="btn-dark">
+                Back to profile
+            </a>
+            <a href="{{ url_for('landing') }}" class="btn-outline">
+                Go home
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
