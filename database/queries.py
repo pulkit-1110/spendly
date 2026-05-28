@@ -160,3 +160,32 @@ def insert_expense(user_id, amount, category, date, description):
         return cur.lastrowid
     finally:
         conn.close()
+
+
+def get_expense_by_id(expense_id):
+    """Return the expense row for the given id, or None if not found."""
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, user_id, amount, category, date, description "
+            "FROM expenses WHERE id = ?",
+            (expense_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """Update an expense owned by user_id. Returns the number of rows updated."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "UPDATE expenses "
+            "SET amount = ?, category = ?, date = ?, description = ? "
+            "WHERE id = ? AND user_id = ?",
+            (amount, category, date, description, expense_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
