@@ -145,3 +145,47 @@ def get_category_breakdown(user_id, start_date=None, end_date=None):
         items[0]["pct"] += diff
 
     return items
+
+
+def insert_expense(user_id, amount, category, date, description):
+    """Insert a new expense row. Returns the new expense id."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, date, description),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def get_expense_by_id(expense_id):
+    """Return the expense row for the given id, or None if not found."""
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, user_id, amount, category, date, description "
+            "FROM expenses WHERE id = ?",
+            (expense_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """Update an expense owned by user_id. Returns the number of rows updated."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "UPDATE expenses "
+            "SET amount = ?, category = ?, date = ?, description = ? "
+            "WHERE id = ? AND user_id = ?",
+            (amount, category, date, description, expense_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()

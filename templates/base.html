@@ -20,6 +20,9 @@
             </a>
             <div class="nav-links">
                 {% if session.get('user_id') %}
+                    <a href="{{ url_for('add_expense') }}" class="nav-link-icon{% if request.endpoint == 'add_expense' %} is-active{% endif %}">
+                        <i data-lucide="plus"></i>Add expense
+                    </a>
                     <a href="{{ url_for('analytics') }}" class="nav-link-icon{% if request.endpoint == 'analytics' %} is-active{% endif %}">
                         <i data-lucide="bar-chart-3"></i>Analytics
                     </a>

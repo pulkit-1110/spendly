@@ -1,7 +1,7 @@
 import re
-from datetime import datetime
+from datetime import date, datetime
 
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session, abort
 
 from werkzeug.security import check_password_hash
 
@@ -17,6 +17,20 @@ from database.queries import (
     get_summary_stats,
     get_recent_transactions,
     get_category_breakdown,
+    insert_expense,
+    get_expense_by_id,
+    update_expense,
+)
+
+
+EXPENSE_CATEGORIES = (
+    "Food",
+    "Transport",
+    "Bills",
+    "Health",
+    "Entertainment",
+    "Shopping",
+    "Other",
 )
 
 app = Flask(__name__)
@@ -74,6 +88,56 @@ def validate_registration_form(name, email, password, password_confirm):
         errors.append("Passwords do not match")
 
     return errors
+
+
+def validate_expense_form(amount, category, date_str, description):
+    """Validate add-expense form data.
+
+    Returns (errors, cleaned). `cleaned` is meaningful only when errors == [].
+    Long descriptions are silently truncated to 200 characters.
+    """
+    errors = []
+    cleaned = {}
+
+    # Amount
+    if not amount:
+        errors.append("Amount is required")
+    else:
+        try:
+            amount_value = float(amount)
+        except ValueError:
+            errors.append("Amount must be a number")
+        else:
+            if amount_value <= 0:
+                errors.append("Amount must be greater than zero")
+            else:
+                cleaned["amount"] = amount_value
+
+    # Category
+    if not category:
+        errors.append("Category is required")
+    elif category not in EXPENSE_CATEGORIES:
+        errors.append("Please choose a valid category")
+    else:
+        cleaned["category"] = category
+
+    # Date
+    if not date_str:
+        errors.append("Date is required")
+    else:
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            errors.append("Please enter a valid date (YYYY-MM-DD)")
+        else:
+            cleaned["date"] = date_str
+
+    # Description (optional, silent truncate at 200)
+    trimmed = (description or "").strip()
+    cleaned["description"] = trimmed[:200] if trimmed else None
+
+    return errors, cleaned
+
 
 with app.app_context():
     init_db()
@@ -203,14 +267,87 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in to add an expense.")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        errors, cleaned = validate_expense_form(
+            request.form.get("amount", "").strip(),
+            request.form.get("category", "").strip(),
+            request.form.get("date", "").strip(),
+            request.form.get("description", ""),
+        )
+        if errors:
+            for error in errors:
+                flash(error)
+            return render_template(
+                "add_expense.html",
+                categories=EXPENSE_CATEGORIES,
+                today=date.today().isoformat(),
+            )
+
+        insert_expense(
+            user_id,
+            cleaned["amount"],
+            cleaned["category"],
+            cleaned["date"],
+            cleaned["description"],
+        )
+        return redirect(url_for("profile"))
+
+    return render_template(
+        "add_expense.html",
+        categories=EXPENSE_CATEGORIES,
+        today=date.today().isoformat(),
+    )
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in to edit an expense.")
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id)
+    if expense is None or expense["user_id"] != user_id:
+        abort(404)
+
+    if request.method == "POST":
+        errors, cleaned = validate_expense_form(
+            request.form.get("amount", "").strip(),
+            request.form.get("category", "").strip(),
+            request.form.get("date", "").strip(),
+            request.form.get("description", ""),
+        )
+        if errors:
+            for error in errors:
+                flash(error)
+            return render_template(
+                "edit_expense.html",
+                expense=expense,
+                categories=EXPENSE_CATEGORIES,
+            )
+
+        update_expense(
+            id,
+            user_id,
+            cleaned["amount"],
+            cleaned["category"],
+            cleaned["date"],
+            cleaned["description"],
+        )
+        return redirect(url_for("profile"))
+
+    return render_template(
+        "edit_expense.html",
+        expense=expense,
+        categories=EXPENSE_CATEGORIES,
+    )
 
 
 @app.route("/expenses/<int:id>/delete")
