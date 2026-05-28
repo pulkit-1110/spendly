@@ -121,6 +121,14 @@
                             <a class="profile-tx-edit" href="{{ url_for('edit_expense', id=tx.id) }}" aria-label="Edit expense">
                                 <i data-lucide="pencil"></i>
                             </a>
+                            <form method="POST"
+                                  action="{{ url_for('delete_expense', id=tx.id) }}"
+                                  style="display:inline"
+                                  onsubmit="return confirm('Delete this expense?')">
+                                <button type="submit" class="profile-tx-delete" aria-label="Delete expense">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </form>
                         </li>
                     {% endfor %}
                 </ul>
