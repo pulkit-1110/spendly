@@ -79,7 +79,7 @@ def get_recent_transactions(user_id, start_date=None, end_date=None, limit=10):
     conn = get_db()
     try:
         rows = conn.execute(
-            "SELECT date, description, category, amount "
+            "SELECT id, date, description, category, amount "
             "FROM expenses WHERE " + where + " "
             "ORDER BY date DESC, id DESC "
             "LIMIT ?",
@@ -95,6 +95,7 @@ def get_recent_transactions(user_id, start_date=None, end_date=None, limit=10):
         except (TypeError, ValueError):
             display_date = row["date"]
         transactions.append({
+            "id": row["id"],
             "date": display_date,
             "description": row["description"],
             "category": row["category"],
